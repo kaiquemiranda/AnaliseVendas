@@ -4,7 +4,7 @@ import plotly.express as px
 from io import BytesIO
 
 
-st.set_page_config(page_title="Análise de Vendas de Peças", layout="wide")
+st.set_page_config(page_title="Análise de Vendas Box 7", layout="wide")
 st.image('box7.png')
 st.title("Análise de Vendas")
 
