@@ -35,14 +35,23 @@ if uploaded_file is not None:
 
             df_filtrado = df[filtro_incluir & filtro_excluir]
 
+            df_filtrado['frete real'] = df_filtrado['Tarifas de envio'] + df_filtrado['Receita por envio (BRL)']
+
+
             if not df_filtrado.empty:
                 st.dataframe(df_filtrado[['N.º de venda', 'SKU', 'Unidades', 'Data da venda', 'Título do anúncio',
-                                          'Receita por produtos (BRL)', 'Tarifas de envio',
+                                          'Receita por produtos (BRL)', 'frete real',
                                           'Tarifa de venda e impostos', 'Total (BRL)']])
 
-                vendas_por_sku = df_filtrado.groupby('SKU')['Unidades'].sum().reset_index()
+                vendas_por_sku = df_filtrado.groupby('SKU').agg({
+                                                                'SKU': 'first',
+                                                                'Título do anúncio': 'first',  # Mantém o primeiro título do anúncio
+                                                                'Receita por produtos (BRL)': 'sum',  # Soma a receita
+                                                                'Unidades': 'sum'  # Soma as unidades
+                                                                }).sort_values(by='Unidades', ascending=False)
 
                 vendas_por_sku = vendas_por_sku.sort_values(by='Unidades', ascending=False)
+
                 st.markdown(f"Total: {df_filtrado['Unidades'].sum()}")
                 buffer = BytesIO()
 
@@ -60,12 +69,13 @@ if uploaded_file is not None:
 
 
 
-                fig = px.bar(vendas_por_sku,
+                fig = px.bar(vendas_por_sku.head(10),
                              x='SKU',
                              y='Unidades',
                              title=f'Produtos mais vendidos para as palavras-chave: {", ".join(palavras_chave).capitalize()}',
                              labels={'SKU': 'SKU', 'Unidades': 'Quantidade de Vendas'},
-                             text_auto=True)
+                             text_auto=True,
+                             hover_data={'Título do anúncio': True})
 
                 st.plotly_chart(fig, use_container_width=True)
 
